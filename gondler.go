@@ -4,37 +4,37 @@ import (
 	"github.com/lrita/cmap"
 )
 
-type Gondler[T any] struct {
-	source    chan T
-	callbacks cmap.Map[string, func(T)]
-	match     func(T) string
+type Gondler[M comparable, F any] struct {
+	source    chan F
+	callbacks cmap.Map[M, func(F)]
+	match     func(F) M
 }
 
-func New[T any](source chan T, match func(T) string) *Gondler[T] {
-	return &Gondler[T]{
+func New[M comparable, F any](source chan F, match func(F) M) *Gondler[M, F] {
+	return &Gondler[M, F]{
 		source:    source,
-		callbacks: cmap.Map[string, func(T)]{},
+		callbacks: cmap.Map[M, func(F)]{},
 		match:     match,
 	}
 }
 
-func (a *Gondler[T]) RunSync() {
+func (a *Gondler[M, F]) RunSync() {
 	for message := range a.source {
 		a.handle(message)
 	}
 }
 
-func (a *Gondler[T]) RunAsync() {
+func (a *Gondler[M, F]) RunAsync() {
 	for message := range a.source {
 		go a.handle(message)
 	}
 }
 
-func (a *Gondler[T]) On(match string, callback func(T)) {
+func (a *Gondler[M, F]) On(match M, callback func(F)) {
 	a.callbacks.Store(match, callback)
 }
 
-func (a *Gondler[T]) handle(message T) {
+func (a *Gondler[M, F]) handle(message F) {
 	callback, ok := a.callbacks.Load(a.match(message))
 	if !ok {
 		return
