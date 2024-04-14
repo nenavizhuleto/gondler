@@ -14,6 +14,7 @@ const (
 	INFO
 	WARN
 	PANIC
+	UNKNOWN
 )
 
 type Message struct {
@@ -25,6 +26,7 @@ func main() {
 	messages := []Message{
 		{Type: INFO, Data: "hello world"},
 		{Type: WARN, Data: "goodbye world"},
+		{Type: UNKNOWN, Data: "what am i doing here?"},
 		{Type: PANIC, Data: "welcome to hell"},
 	}
 	source := make(chan Message)
@@ -49,6 +51,10 @@ func main() {
 
 	handler.On(PANIC, func(m Message) {
 		log.Println("holy moly!!! we're going to panic right now!", m.Data)
+	})
+
+	handler.Default(func(m Message) {
+		log.Println("unknown message", m.Data)
 	})
 
 	handler.RunSync()
